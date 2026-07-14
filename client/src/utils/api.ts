@@ -8,9 +8,11 @@ const getHeaders = () => {
   };
 };
 
+const BASE_URL = import.meta.env.VITE_API_URL || '';
+
 export async function request(url: string, options: RequestInit = {}) {
   const headers = { ...getHeaders(), ...options.headers };
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(`${BASE_URL}${url}`, { ...options, headers });
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
