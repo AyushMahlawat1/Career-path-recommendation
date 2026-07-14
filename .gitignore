@@ -6,3 +6,5 @@ dist/
 dev.db
 coverage/
 npm-debug.log
+.vercel/
+.render/
