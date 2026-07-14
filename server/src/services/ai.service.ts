@@ -42,6 +42,29 @@ export interface CareerAnalysisResponse {
   }>;
 }
 
+interface GeminiPart {
+  text?: string;
+}
+
+interface GeminiContent {
+  parts?: GeminiPart[];
+}
+
+interface GeminiCandidate {
+  content?: GeminiContent;
+}
+
+interface GeminiResponse {
+  candidates?: GeminiCandidate[];
+}
+
+function isGeminiResponse(obj: unknown): obj is GeminiResponse {
+  if (typeof obj !== 'object' || obj === null) return false;
+  const res = obj as Record<string, unknown>;
+  if ('candidates' in res && res.candidates !== undefined && !Array.isArray(res.candidates)) return false;
+  return true;
+}
+
 // 1. Dynamic Adaptive Question Generator
 export async function generateNextQuestion(
   chatHistory: Array<{ role: string; text: string }>
@@ -83,12 +106,13 @@ You must respond in valid JSON format matching the schema below. Do not wrap in 
           }),
         }
       );
-
       if (response.ok) {
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          return JSON.parse(text) as NextQuestionResponse;
+        if (isGeminiResponse(data)) {
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            return JSON.parse(text) as NextQuestionResponse;
+          }
         }
       }
     } catch (error) {
@@ -152,9 +176,11 @@ You must respond in valid JSON format matching this schema. Do not write markdow
 
       if (response.ok) {
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          return JSON.parse(text) as TraitScoresResponse;
+        if (isGeminiResponse(data)) {
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            return JSON.parse(text) as TraitScoresResponse;
+          }
         }
       }
     } catch (error) {
@@ -240,9 +266,11 @@ Generate the report in valid JSON format. Follow this schema exactly:
 
       if (response.ok) {
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          return JSON.parse(text) as CareerAnalysisResponse;
+        if (isGeminiResponse(data)) {
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            return JSON.parse(text) as CareerAnalysisResponse;
+          }
         }
       }
     } catch (error) {
